@@ -1,0 +1,184 @@
+---
+title: "Application Shiny"
+author: "Groupe 6"
+date: "2023-06-24"
+output: ioslides_presentation
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+## ![](sortie.png)
+
+## Présentation shiny
+
+Shiny est un package R développé par RStudio qui permet de créer des applications web interactives. C'est une plateforme qui facilite la création d'interfaces utilisateur dynamiques pour analyser des données, afficher des graphiques, exécuter des modèles statistiques, et bien plus encore, le tout directement à partir de R.
+
+Avec Shiny, vous pouvez construire des applications web interactives sans avoir besoin de connaissances approfondies en HTML, CSS ou JavaScript.
+
+Shiny utilise un modèle ui-server : le serveur R exécute le code R et génère les sorties dynamiques, tandis que l'ui (navigateur web) affiche l'interface utilisateur et permet aux utilisateurs d'interagir avec l'application.
+
+## Interface utilisateur
+
+L'interface utilisateur c'est la partie visible et interactive de l'application. Elle permet aux utilisateurs d'interagir avec l'application, de saisir des données, de visualiser des résultats et d'effectuer des actions spécifiques. 
+
+Dans cette partie on utilise plusieurs fonctions dont voici quelques unes:
+
+-   **fluidPage** : Crée une page Shiny fluide qui s'adapte à la taille de la fenêtre du navigateur.
+
+-   **titlePanel** : Affiche un titre en haut de la page Shiny.
+
+## Fonctions de l'interface utilisateur
+
+-   **selectInput**: Crée un menu déroulant permettant à l'utilisateur de sélectionner une option parmi une liste.
+
+-   **sliderInput** : Crée un curseur coulissant permettant à l'utilisateur de sélectionner une valeur numérique dans une plage définie.
+
+```{r eruptions}
+inputPanel(
+  selectInput("n_breaks", label = "Number of bins:",
+              choices = c(10, 20, 35, 50), selected = 20),
+  
+  sliderInput("bw_adjust", label = "Bandwidth adjustment:",
+              min = 0.2, max = 2, value = 1, step = 0.2)
+)
+
+```
+
+## Autres fonctions de l'interface utilisateur
+
+-   **verbatimTextOutput** : Affiche du texte généré par le serveur dans l'interface utilisateur.
+
+-   **textInput**: Permet de créer un widget de saisie de texte dans une application Shiny.
+
+
+```{r}
+library(shiny)
+
+inputPanel(
+  textInput("input_text", "Saisir un texte"),
+  verbatimTextOutput("output_text"),
+)
+
+renderPrint({
+    input$input_text
+  })
+
+```
+
+## Autres fonctions de l'interface utilisateur
+
+- **plotOutput**: permet d'afficher un graphe dans l'interface utilisateur.
+
+```{r}
+renderPlot({
+  hist(faithful$eruptions, probability = TRUE, breaks = 10,
+       xlab = "Duration (minutes)", main = "Geyser eruption duration")
+})
+```
+
+## Autres fonctions de l'interface utilisateur
+
+**tableOutput**: permet de générer un tableau depuis le server dans l'interface utilisateur.
+
+Dans l'exemple ci-dessous nous affichons les 4 premières lignes de la base de données **iris**
+
+```{r}
+renderTable({
+  head(iris, 4)
+})
+```
+
+## Le server
+
+Le server est "le cerveau" de l'application shiny. Il reçoit les interactions de l'utilisateur depuis l'interface utilisateur et génère des sorties dynamiques en fonction de ces interactions.
+Voici quelques fonctions utilisées dans le server:
+
+- **renderText()** : Cette fonction est utilisée pour générer et afficher du texte dynamique dans l'interface utilisateur en réponse à des événements ou à des calculs.
+
+- **renderPlot()** : Elle permet de générer et d'afficher des graphiques interactifs dans l'interface utilisateur en réponse à des événements ou à des données mises à jour.
+
+## Quelques fonctions du server
+
+- **renderTable()** : Cette fonction génère et affiche des tableaux interactifs dans l'interface utilisateur en réponse à des événements ou à des données mises à jour.
+
+- **observeEvent()** : Cette fonction est utilisée pour observer des événements spécifiques déclenchés par l'utilisateur (par exemple, un clic de bouton) et exécuter des actions en réponse à ces événements.
+
+## Quelques fonctions du server
+
+- **reactive()** : Elle permet de créer des objets réactifs qui se mettent à jour automatiquement en fonction des dépendances spécifiées. Cela est utile pour calculer des valeurs dérivées ou filtrer des données en temps réel.
+
+- **renderUI()**: Elle permet de générer et d'afficher du contenu HTML ou des éléments d'interface utilisateur dynamiquement, en réponse à des événements ou à des calculs.
+
+## L'input et l'output
+
+Il est important de savoir comment fonctionne la programmation avec le package Shiny. Elle est basée sur le concept des inputs c'est-à-dire tout ce que l'utilisateur entre dans l'interface et des outputs c'est-à-dire tout ce que l'application renvoit à l'utilisateur suite à l'input de ce dernier. Cette sortie est programmée dans le server et est générée dans l'interface.
+
+Pour une meilleure illustration, nous allons prendre un exemple simple. 
+Supposons que l'utilisateur veuille  voir un texte s'afficher en réponse au texte qu'il entre. Ce exemple est déjà bien illustré à la dispositive 6.
+
+## Exemple d'utilisation
+
+Dans la programmation de l'interface utilisateur, il faut donc mettre une fonction permettant à l'utilisateur d'entrer un texte. Pour cela la fonction **textInput** est utilisée. Puisqu'il désire une sortie "texte" il doit le préciser également dans l'interface utilisateur. D'autant plus, il désire une sortie interactive donc la fonction **verbatimTextOutput** est la plus appropriée. Pour chacune des fonctions, le premier paramètre représente l'ID c'est à dire l'identifiant qui va servir à les indexer dans la programmation server. Tout ceci est illustré par ce qui suit:
+
+```{r, echo = TRUE, eval=FALSE}
+ui <- fluidPage( #fluidPage est utilisé pour créer la page web de l'application
+  textInput("input_text", "Saisir un texte"), #ID: input_text 
+  verbatimTextOutput("output_text"), #ID: output_text
+)
+```
+
+## Exemple d'utilisation
+
+Maintenant que la programmation de l'interface est gérée, il faut programmer dans le server l'interaction qu'il existe entre les deux UI (textInput et verbatimTextOutput) qu'on vient de créer. Nous avons ce qui suit:
+
+```{r echo=TRUE, eval=FALSE}
+server <- function(input, output){ # input est une sorte de liste qui contient tous les ID des inputs et output est la "liste" contenant tous les ID des outputs
+  
+  output$output_text  <- renderPrint({#dans cette partie, on précise à R ce qu'on veut faire sortir pour l'output dont l'ID est "output_text". La fonction renderText est chargé de renvoyer un texte puisqu'on veut afficher un texte.
+    
+    input$input_text  # ce code précise qu'on veut renvoyer le texte entré dans l'input dont l'ID est 'input_text'
+    
+  }) 
+}
+```
+
+## Exemple d'utilisation
+
+Ainsi, lorsqu'on exécute ce code dans un fichier R en ajoutant "shinyApp(ui = ui, server = server)" on obtient le même rendu que dans la dispositive 6 c'est à dire le rendu suivant:
+
+```{r}
+
+inputPanel(
+  textInput("text", "Saisir un texte"),
+  verbatimTextOutput("out_text"),
+)
+
+renderPrint({
+    input$text
+  })
+
+```
+
+## Packages nécessaires
+
+Pour programmer une application shiny, le package **shiny** est absolument nécessaire. C'est dans ce package que se trouve les fonctions citées plus haut. 
+
+Cependant il est possible de créer des tableaux de bord interactifs avec une mise en page structurée et professionnelle avec le package **shinydashborad**. C'est ce que nous avons eu à utiliser pour la création de notre application. 
+
+## Packages nécessaires
+
+Nous utilisons aussi le package **DT** qui fournit les fonctions **dataTableOutput** et **renderDataTable()** qui permettent de générer des tableaux personnalisés et interactifs permettant de faire des filtres très facilement. Nous pouvons aussi utiliser le package **gt** qui permet de realiser des tableaux de **gtsummary**.
+
+Ainsi, dans une application shiny, nous pouvons utiliser plusieurs autres packages selon nos besoins.
+
+## Liens utiles
+
+Apprendre à développer des applications [shiny](https://shiny.posit.co/r/getstarted/) pas à pas
+
+Graphiques avec ggplot2 : [Lien_1](https://stt4230.rbind.io/communication_resultats/graphiques_ggplot2_r/) [Lien2](https://larmarange.github.io/analyse-R/graphiques-bivaries-ggplot2.html)
+
+pour la production : [Lien_1](https://engineering-shiny.org/) [lien_2](https://posit.co/blog/successfully-putting-shiny-in-production/)
