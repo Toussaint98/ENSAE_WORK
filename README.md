@@ -9,5 +9,5 @@
 
 #En
 #this repository is created for the deposits of the various works that I had to do during my training as an economist statistician engineer at ENSAE in Dakar.
-# the codes will be mainly written in python and R language.
+# Codes will be mainly written in python and R language.
 # Good sequel.
